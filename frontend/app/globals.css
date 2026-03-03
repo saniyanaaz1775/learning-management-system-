@@ -1,0 +1,30 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --foreground: #0a0a0a;
+  --background: #fafafa;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --foreground: #fafafa;
+    --background: #0a0a0a;
+  }
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: var(--font-sans), system-ui, sans-serif;
+}
+
+@layer base {
+  h1 {
+    @apply text-2xl font-semibold tracking-tight;
+  }
+  h2 {
+    @apply text-xl font-medium;
+  }
+}

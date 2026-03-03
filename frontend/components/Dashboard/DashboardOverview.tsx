@@ -1,0 +1,196 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import {
+  fetchAllCourses,
+  fetchEnrolledSubjectIds,
+  fetchProgressMap,
+  type CourseItem,
+  type SubjectProgress,
+} from '@/lib/courses';
+import { Spinner } from '@/lib/common/Spinner';
+import { Alert } from '@/lib/common/Alert';
+import { Button } from '@/lib/common/Button';
+
+export function DashboardOverview() {
+  const [enrolledCount, setEnrolledCount] = useState<number>(0);
+  const [continueCourse, setContinueCourse] = useState<{
+    course: CourseItem;
+    progress: SubjectProgress;
+  } | null>(null);
+  const [progressSummary, setProgressSummary] = useState<{
+    inProgress: number;
+    completed: number;
+    averagePercent: number;
+  } | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const courses = await fetchAllCourses();
+        if (cancelled) return;
+        const ids = courses.map((c) => c.id);
+        const enrolledIds = await fetchEnrolledSubjectIds(ids);
+        if (cancelled) return;
+        setEnrolledCount(enrolledIds.length);
+
+        if (enrolledIds.length === 0) {
+          setProgressSummary({ inProgress: 0, completed: 0, averagePercent: 0 });
+          setLoading(false);
+          return;
+        }
+
+        const progressMap = await fetchProgressMap(enrolledIds);
+        if (cancelled) return;
+
+        const enrolledCourses = courses.filter((c) => enrolledIds.includes(c.id));
+        let inProgress = 0;
+        let completed = 0;
+        let totalPercent = 0;
+        let continueCandidate: { course: CourseItem; progress: SubjectProgress } | null = null;
+
+        for (const course of enrolledCourses) {
+          const p = progressMap[course.id] ?? {
+            total_videos: 0,
+            completed_videos: 0,
+            percent_complete: 0,
+            last_video_id: null,
+            last_position_seconds: null,
+          };
+          if (p.percent_complete > 0 && p.percent_complete < 100) inProgress++;
+          if (p.percent_complete >= 100) completed++;
+          totalPercent += p.percent_complete;
+          if (p.last_video_id != null && !continueCandidate) {
+            continueCandidate = { course, progress: p };
+          }
+        }
+        if (!continueCandidate && enrolledCourses.length > 0) {
+          const first = enrolledCourses[0];
+          continueCandidate = {
+            course: first,
+            progress: progressMap[first.id] ?? {
+              total_videos: 0,
+              completed_videos: 0,
+              percent_complete: 0,
+              last_video_id: null,
+              last_position_seconds: null,
+            },
+          };
+        }
+        setContinueCourse(continueCandidate ?? null);
+        setProgressSummary({
+          inProgress,
+          completed,
+          averagePercent:
+            enrolledIds.length > 0 ? Math.round(totalPercent / enrolledIds.length) : 0,
+        });
+      } catch (e) {
+        if (!cancelled) setError(e instanceof Error ? e.message : 'Failed to load');
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center gap-2 py-16">
+        <Spinner />
+        <span className="text-neutral-600 dark:text-neutral-400">Loading dashboard…</span>
+      </div>
+    );
+  }
+  if (error) {
+    return (
+      <div className="rounded-xl border border-red-200 bg-red-50 p-4 dark:border-red-900/50 dark:bg-red-950/30">
+        <Alert variant="error">{error}</Alert>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-8">
+      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+          <p className="text-sm font-medium text-neutral-500 dark:text-neutral-400">
+            Enrolled courses
+          </p>
+          <p className="mt-2 text-3xl font-bold text-neutral-900 dark:text-white">
+            {enrolledCount}
+          </p>
+        </div>
+        {progressSummary != null && (
+          <>
+            <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+              <p className="text-sm font-medium text-neutral-500 dark:text-neutral-400">
+                In progress
+              </p>
+              <p className="mt-2 text-3xl font-bold text-neutral-900 dark:text-white">
+                {progressSummary.inProgress}
+              </p>
+            </div>
+            <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+              <p className="text-sm font-medium text-neutral-500 dark:text-neutral-400">
+                Average progress
+              </p>
+              <p className="mt-2 text-3xl font-bold text-neutral-900 dark:text-white">
+                {progressSummary.averagePercent}%
+              </p>
+            </div>
+          </>
+        )}
+      </div>
+
+      {continueCourse && (
+        <section>
+          <h2 className="mb-4 text-lg font-semibold text-neutral-900 dark:text-white">
+            Continue learning
+          </h2>
+          <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-md dark:border-neutral-800 dark:bg-neutral-900">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h3 className="text-lg font-semibold text-neutral-900 dark:text-white">
+                  {continueCourse.course.title}
+                </h3>
+                <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
+                  {continueCourse.progress.percent_complete}% complete
+                </p>
+                <div className="mt-2 h-2 w-full max-w-xs overflow-hidden rounded-full bg-neutral-100 dark:bg-neutral-800">
+                  <div
+                    className="h-full rounded-full bg-emerald-500"
+                    style={{ width: `${Math.min(100, continueCourse.progress.percent_complete)}%` }}
+                  />
+                </div>
+              </div>
+              <Link href={`/subjects/${continueCourse.course.id}`} className="shrink-0">
+                <Button variant="primary" className="rounded-lg">
+                  {continueCourse.progress.last_video_id != null ? 'Continue' : 'Start'}
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {enrolledCount === 0 && (
+        <div className="rounded-2xl border border-neutral-200 bg-neutral-50/50 py-12 text-center dark:border-neutral-800 dark:bg-neutral-900/30">
+          <p className="text-neutral-500 dark:text-neutral-400">
+            You haven&apos;t enrolled in any courses yet.
+          </p>
+          <Link href="/courses" className="mt-4 inline-block">
+            <Button variant="primary">Browse courses</Button>
+          </Link>
+        </div>
+      )}
+    </div>
+  );
+}
