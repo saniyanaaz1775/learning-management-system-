@@ -1,0 +1,17 @@
+# Render dashboard – use these exact values
+
+Root Directory: backend
+
+Build Command:
+npm install --include=dev && node scripts/with-normalized-env.js "npx prisma generate && npm run build"
+
+Start Command:
+node scripts/with-normalized-env.js "npx prisma migrate deploy && node dist/server.js"
+
+Environment (required):
+- NODE_ENV = production
+- DATABASE_URL = mysql://user:password@host:port/database  (no quotes; add ?ssl-mode=REQUIRED if needed)
+- JWT_ACCESS_SECRET = (long random string)
+- JWT_REFRESH_SECRET = (long random string)
+- CORS_ORIGIN = https://your-frontend.vercel.app
+- ADMIN_EMAIL = (optional) your admin email
