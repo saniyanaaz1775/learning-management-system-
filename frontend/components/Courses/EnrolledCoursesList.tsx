@@ -10,6 +10,7 @@ import {
 } from '@/lib/courses';
 import { Spinner } from '@/lib/common/Spinner';
 import { Alert } from '@/lib/common/Alert';
+import { toastStore } from '@/store/toastStore';
 import { CourseCard } from './CourseCard';
 
 /**
@@ -38,7 +39,11 @@ export function EnrolledCoursesList() {
           enrolledIds.length > 0 ? await fetchProgressMap(enrolledIds) : {};
         if (!cancelled) setProgressMap(map);
       } catch (e) {
-        if (!cancelled) setError(e instanceof Error ? e.message : 'Failed to load');
+        if (!cancelled) {
+          const msg = e instanceof Error ? e.message : 'Failed to load';
+          setError(msg);
+          toastStore.getState().error(msg);
+        }
       } finally {
         if (!cancelled) {
           setLoading(false);

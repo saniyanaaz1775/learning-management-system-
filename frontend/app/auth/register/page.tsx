@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { Button } from '@/lib/common/Button';
 import { Alert } from '@/lib/common/Alert';
 import { register } from '@/lib/auth';
+import { toastStore } from '@/store/toastStore';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -21,10 +22,13 @@ export default function RegisterPage() {
     setLoading(true);
     try {
       await register(email, password, name);
+      toastStore.getState().success('Account created. Welcome!');
       router.push('/');
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Registration failed');
+      const msg = err instanceof Error ? err.message : 'Registration failed';
+      setError(msg);
+      toastStore.getState().error(msg);
     } finally {
       setLoading(false);
     }

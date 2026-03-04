@@ -7,6 +7,7 @@ import { apiClient } from '@/lib/apiClient';
 import { VideoPlayer } from '@/components/Video/VideoPlayer';
 import { sendProgress, flushProgress } from '@/lib/progress';
 import { sidebarStore } from '@/store/sidebarStore';
+import { toastStore } from '@/store/toastStore';
 import { Spinner } from '@/lib/common/Spinner';
 import { Alert } from '@/lib/common/Alert';
 
@@ -43,6 +44,7 @@ export default function VideoPage() {
   const [progress, setProgress] = useState<VideoProgress | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [completing, setCompleting] = useState(false);
   const markVideoCompleted = sidebarStore((s) => s.markVideoCompleted);
 
   useEffect(() => {
@@ -54,26 +56,38 @@ export default function VideoPage() {
         setMeta(m);
         setProgress(p);
       })
-      .catch((e) => setError(e instanceof Error ? e.message : 'Failed to load'))
+      .catch((e) => {
+        const msg = e instanceof Error ? e.message : 'Failed to load';
+        setError(msg);
+        toastStore.getState().error(msg);
+      })
       .finally(() => setLoading(false));
   }, [videoId]);
 
   function handleProgress(currentTime: number) {
     if (meta && !meta.locked) {
       sendProgress(videoId, { last_position_seconds: Math.floor(currentTime) }, (vid, body) =>
-        apiClient.post(`/api/progress/videos/${vid}`, body).catch(() => {})
+        apiClient.post(`/api/progress/videos/${vid}`, body).then(() => {}, () => {})
       );
     }
   }
 
   async function handleCompleted() {
-    markVideoCompleted(videoId);
-    flushProgress(videoId, (vid, body) =>
-      apiClient.post(`/api/progress/videos/${vid}`, { ...body, is_completed: true })
-    );
-    await apiClient.post(`/api/progress/videos/${videoId}`, { last_position_seconds: 0, is_completed: true });
-    if (meta?.next_video_id) {
-      router.push(`/subjects/${subjectId}/video/${meta.next_video_id}`);
+    setCompleting(true);
+    try {
+      markVideoCompleted(videoId);
+      flushProgress(videoId, (vid, body) =>
+        apiClient.post(`/api/progress/videos/${vid}`, { ...body, is_completed: true }).then(() => {}, () => {})
+      );
+      await apiClient.post(`/api/progress/videos/${videoId}`, { last_position_seconds: 0, is_completed: true });
+      toastStore.getState().success('Lesson completed');
+      if (meta?.next_video_id) {
+        router.push(`/subjects/${subjectId}/video/${meta.next_video_id}`);
+      }
+    } catch {
+      toastStore.getState().error('Failed to save progress');
+    } finally {
+      setCompleting(false);
     }
   }
 
@@ -147,8 +161,9 @@ export default function VideoPage() {
         {meta.previous_video_id ? (
           <button
             type="button"
+            disabled={completing}
             onClick={() => router.push(`/subjects/${subjectId}/video/${meta.previous_video_id}`)}
-            className="rounded-lg border border-neutral-200 px-4 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-800"
+            className="rounded-lg border border-neutral-200 px-4 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50 disabled:opacity-50 disabled:pointer-events-none dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-800"
           >
             Previous lesson
           </button>
@@ -156,8 +171,9 @@ export default function VideoPage() {
         {meta.next_video_id ? (
           <button
             type="button"
+            disabled={completing}
             onClick={() => router.push(`/subjects/${subjectId}/video/${meta.next_video_id}`)}
-            className="rounded-lg bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800 dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-200"
+            className="rounded-lg bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800 disabled:opacity-50 disabled:pointer-events-none dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-200"
           >
             Next lesson
           </button>

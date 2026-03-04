@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { fetchAllCourses, fetchProgressMap, type CourseItem, type SubjectProgress } from '@/lib/courses';
 import { Spinner } from '@/lib/common/Spinner';
 import { Alert } from '@/lib/common/Alert';
+import { toastStore } from '@/store/toastStore';
 import { CourseCard } from './CourseCard';
 
 /**
@@ -19,7 +20,11 @@ export function CoursesList() {
   useEffect(() => {
     fetchAllCourses()
       .then(setCourses)
-      .catch((e) => setError(e instanceof Error ? e.message : 'Failed to load'))
+      .catch((e) => {
+        const msg = e instanceof Error ? e.message : 'Failed to load';
+        setError(msg);
+        toastStore.getState().error(msg);
+      })
       .finally(() => setLoading(false));
   }, []);
 

@@ -12,12 +12,23 @@ export interface CourseCardProps {
   isLoadingProgress?: boolean;
 }
 
+function getCourseAction(percentComplete: number): 'start' | 'continue' | 'completed' {
+  if (percentComplete >= 100) return 'completed';
+  if (percentComplete > 0) return 'continue';
+  return 'start';
+}
+
+const actionTooltips: Record<'start' | 'continue' | 'completed', string> = {
+  start: 'You haven’t started this course yet. Click to enroll and begin the first lesson.',
+  continue: 'You’ve already started. Click to pick up where you left off.',
+  completed: 'You’ve finished all lessons in this course.',
+};
+
 export function CourseCard({
   id,
   title,
   description,
   percentComplete,
-  hasProgress,
   isLoadingProgress,
 }: CourseCardProps) {
   const shortDescription =
@@ -26,6 +37,9 @@ export function CourseCard({
         ? description.slice(0, 120).trim() + '…'
         : description
       : '';
+
+  const action = getCourseAction(percentComplete);
+  const isCompleted = action === 'completed';
 
   return (
     <article className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-md transition-all duration-200 hover:scale-[1.02] hover:shadow-lg dark:border-neutral-800 dark:bg-neutral-900">
@@ -56,11 +70,22 @@ export function CourseCard({
           </div>
         )}
       </div>
-      <Link href={`/subjects/${id}`} className="inline-block w-full">
-        <Button variant="primary" className="w-full rounded-lg">
-          {hasProgress ? 'Continue' : 'Start'}
+      {isCompleted ? (
+        <Button
+          variant="secondary"
+          className="w-full rounded-lg"
+          disabled
+          title={actionTooltips.completed}
+        >
+          Course Completed
         </Button>
-      </Link>
+      ) : (
+        <Link href={`/subjects/${id}`} className="inline-block w-full" title={actionTooltips[action]}>
+          <Button variant="primary" className="w-full rounded-lg" title={actionTooltips[action]}>
+            {action === 'start' ? 'Start' : 'Continue'}
+          </Button>
+        </Link>
+      )}
     </article>
   );
 }

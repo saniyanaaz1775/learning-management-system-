@@ -12,6 +12,7 @@ import {
 import { Spinner } from '@/lib/common/Spinner';
 import { Alert } from '@/lib/common/Alert';
 import { Button } from '@/lib/common/Button';
+import { toastStore } from '@/store/toastStore';
 
 export function DashboardOverview() {
   const [enrolledCount, setEnrolledCount] = useState<number>(0);
@@ -90,7 +91,11 @@ export function DashboardOverview() {
             enrolledIds.length > 0 ? Math.round(totalPercent / enrolledIds.length) : 0,
         });
       } catch (e) {
-        if (!cancelled) setError(e instanceof Error ? e.message : 'Failed to load');
+        if (!cancelled) {
+          const msg = e instanceof Error ? e.message : 'Failed to load';
+          setError(msg);
+          toastStore.getState().error(msg);
+        }
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -171,8 +176,24 @@ export function DashboardOverview() {
                   />
                 </div>
               </div>
-              <Link href={`/subjects/${continueCourse.course.id}`} className="shrink-0">
-                <Button variant="primary" className="rounded-lg">
+              <Link
+                href={`/subjects/${continueCourse.course.id}`}
+                className="shrink-0"
+                title={
+                  continueCourse.progress.last_video_id != null
+                    ? 'Pick up where you left off'
+                    : 'Enroll and begin the first lesson'
+                }
+              >
+                <Button
+                  variant="primary"
+                  className="rounded-lg"
+                  title={
+                    continueCourse.progress.last_video_id != null
+                      ? 'Pick up where you left off'
+                      : 'Enroll and begin the first lesson'
+                  }
+                >
                   {continueCourse.progress.last_video_id != null ? 'Continue' : 'Start'}
                 </Button>
               </Link>
@@ -191,6 +212,43 @@ export function DashboardOverview() {
           </Link>
         </div>
       )}
+
+      <section>
+        <h2 className="mb-4 text-lg font-semibold text-neutral-900 dark:text-white">
+          Tools
+        </h2>
+        <Link
+          href="/compiler"
+          className="flex items-center gap-4 rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md dark:border-neutral-800 dark:bg-neutral-900"
+        >
+          <span
+            className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-neutral-100 dark:bg-neutral-800"
+            aria-hidden
+          >
+            <svg
+              className="h-6 w-6 text-neutral-600 dark:text-neutral-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"
+              />
+            </svg>
+          </span>
+          <div>
+            <h3 className="font-semibold text-neutral-900 dark:text-white">
+              Online Code Compiler
+            </h3>
+            <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
+              Run code in Python, C, C++, Java, or JavaScript
+            </p>
+          </div>
+        </Link>
+      </section>
     </div>
   );
 }

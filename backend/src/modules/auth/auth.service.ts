@@ -40,11 +40,13 @@ export const authService = {
         expiresAt,
       },
     });
+    const isAdmin = !!env.ADMIN_EMAIL && user.email.toLowerCase() === env.ADMIN_EMAIL.toLowerCase();
     return {
       json: {
         user: { id: Number(user.id), email: user.email, name: user.name },
         accessToken,
         expiresIn: 900,
+        isAdmin,
       },
       cookie: {
         name: COOKIE_NAME,
@@ -65,11 +67,13 @@ export const authService = {
     await prisma.refreshToken.create({
       data: { userId: user.id, tokenHash, expiresAt },
     });
+    const isAdmin = !!env.ADMIN_EMAIL && user.email.toLowerCase() === env.ADMIN_EMAIL.toLowerCase();
     return {
       json: {
         user: { id: Number(user.id), email: user.email, name: user.name },
         accessToken,
         expiresIn: 900,
+        isAdmin,
       },
       cookie: {
         name: COOKIE_NAME,
@@ -110,5 +114,20 @@ export const authService = {
       where: { tokenHash },
       data: { revokedAt: new Date() },
     });
+  },
+
+  async getMe(userId: number) {
+    const user = await prisma.user.findUnique({
+      where: { id: BigInt(userId) },
+      select: { id: true, email: true, name: true },
+    });
+    if (!user) return null;
+    const isAdmin = !!env.ADMIN_EMAIL && user.email.toLowerCase() === env.ADMIN_EMAIL.toLowerCase();
+    return {
+      id: Number(user.id),
+      email: user.email,
+      name: user.name,
+      isAdmin,
+    };
   },
 };

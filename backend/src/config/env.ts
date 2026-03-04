@@ -1,6 +1,8 @@
 import dotenv from 'dotenv';
+import path from 'path';
 
-dotenv.config();
+// Load .env from backend root so OPENAI_API_KEY etc. are set regardless of process.cwd()
+dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
 export const env = {
   NODE_ENV: process.env.NODE_ENV ?? 'development',
@@ -13,4 +15,5 @@ export const env = {
   CORS_ORIGIN: process.env.CORS_ORIGIN ?? 'http://localhost:3000',
   COOKIE_DOMAIN: process.env.COOKIE_DOMAIN ?? undefined,
   COOKIE_NAME: process.env.COOKIE_NAME ?? 'refreshToken',
+  ADMIN_EMAIL: process.env.ADMIN_EMAIL ?? undefined,
 } as const;

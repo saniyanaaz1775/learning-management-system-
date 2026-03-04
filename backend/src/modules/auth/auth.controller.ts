@@ -3,6 +3,20 @@ import { env } from '../../config/env';
 import { toApiError } from '../../utils/apiError';
 import { authService } from './auth.service';
 
+export async function me(req: Request, res: Response) {
+  try {
+    const userId = req.user?.id;
+    if (userId == null) return res.status(401).json({ error: 'Not authenticated' });
+    const data = await authService.getMe(userId);
+    if (!data) return res.status(401).json({ error: 'User not found' });
+    return res.json(data);
+  } catch (e: unknown) {
+    if (env.NODE_ENV !== 'production' && e) console.error('Me error:', e);
+    const { statusCode, message } = toApiError(e);
+    return res.status(statusCode).json({ error: message });
+  }
+}
+
 const COOKIE_NAME = env.COOKIE_NAME;
 const isDev = env.NODE_ENV !== 'production';
 

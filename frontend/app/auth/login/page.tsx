@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { Button } from '@/lib/common/Button';
 import { Alert } from '@/lib/common/Alert';
 import { login } from '@/lib/auth';
+import { toastStore } from '@/store/toastStore';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -20,10 +21,13 @@ export default function LoginPage() {
     setLoading(true);
     try {
       await login(email, password);
+      toastStore.getState().success('Logged in successfully');
       router.push('/');
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Login failed');
+      const msg = err instanceof Error ? err.message : 'Login failed';
+      setError(msg);
+      toastStore.getState().error(msg);
     } finally {
       setLoading(false);
     }

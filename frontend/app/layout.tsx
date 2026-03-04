@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { AppShell } from '@/components/Layout/AppShell';
+import { ToastContainer } from '@/components/Toast/ToastContainer';
 
 export const metadata: Metadata = {
   title: 'LMS',
@@ -16,6 +17,7 @@ export default function RootLayout({
     <html lang="en">
       <body className="min-h-screen antialiased">
         <AppShell>{children}</AppShell>
+        <ToastContainer />
       </body>
     </html>
   );

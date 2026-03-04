@@ -7,6 +7,7 @@ import { apiClient } from '@/lib/apiClient';
 import { Button } from '@/lib/common/Button';
 import { Spinner } from '@/lib/common/Spinner';
 import { sidebarStore } from '@/store/sidebarStore';
+import { toastStore } from '@/store/toastStore';
 
 export default function CourseOverviewPage() {
   const params = useParams();
@@ -40,7 +41,9 @@ export default function CourseOverviewPage() {
         } else throw e;
       }
       router.push(`/subjects/${subjectId}/video/${data.video_id}`);
-    } catch {
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : 'Something went wrong';
+      toastStore.getState().error(msg);
       setStarting(false);
     }
   }
@@ -86,7 +89,13 @@ export default function CourseOverviewPage() {
       </header>
 
       <div className="mb-8">
-        <Button onClick={handleStart} loading={starting} variant="primary" className="rounded-lg">
+        <Button
+          onClick={handleStart}
+          loading={starting}
+          variant="primary"
+          className="rounded-lg"
+          title="Open the first lesson or continue where you left off"
+        >
           Start / Continue
         </Button>
       </div>

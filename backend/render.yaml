@@ -18,3 +18,5 @@ services:
         sync: false
       - key: COOKIE_DOMAIN
         sync: false
+      - key: ADMIN_EMAIL
+        sync: false

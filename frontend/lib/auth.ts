@@ -8,7 +8,7 @@ const NETWORK_ERROR_MSG = `Cannot reach server at ${BASE}. Start the backend: cd
 async function authFetch(
   path: string,
   body: Record<string, unknown>
-): Promise<{ user: User; accessToken: string }> {
+): Promise<{ user: User; accessToken: string; isAdmin: boolean }> {
   let res: Response;
   try {
     res = await fetch(`${BASE}${path}`, {
@@ -23,7 +23,7 @@ async function authFetch(
       : (e instanceof Error ? e.message : 'Network error');
     throw new Error(msg);
   }
-  let data: { error?: string; user?: User; accessToken?: string } = {};
+  let data: { error?: string; user?: User; accessToken?: string; isAdmin?: boolean } = {};
   try {
     data = await res.json();
   } catch {
@@ -38,12 +38,19 @@ async function authFetch(
   }
   if (!res.ok) throw new Error(data.error ?? `Request failed (${res.status}). Try again.`);
   if (!data.user || !data.accessToken) throw new Error('Invalid response from server');
-  return { user: data.user, accessToken: data.accessToken };
+  return { user: data.user, accessToken: data.accessToken, isAdmin: !!data.isAdmin };
 }
 
-export async function login(email: string, password: string): Promise<{ user: User; accessToken: string }> {
+export async function login(email: string, password: string): Promise<{ user: User; accessToken: string; isAdmin: boolean }> {
   const result = await authFetch('/api/auth/login', { email, password });
-  authStore.getState().login(result.user, result.accessToken);
+  authStore.getState().login(result.user, result.accessToken, result.isAdmin);
+  if (typeof window !== 'undefined') {
+    try {
+      window.localStorage.setItem('lms_isAdmin', result.isAdmin ? '1' : '0');
+    } catch {
+      // ignore
+    }
+  }
   return result;
 }
 
@@ -51,9 +58,16 @@ export async function register(
   email: string,
   password: string,
   name: string
-): Promise<{ user: User; accessToken: string }> {
+): Promise<{ user: User; accessToken: string; isAdmin: boolean }> {
   const result = await authFetch('/api/auth/register', { email, password, name });
-  authStore.getState().login(result.user, result.accessToken);
+  authStore.getState().login(result.user, result.accessToken, result.isAdmin);
+  if (typeof window !== 'undefined') {
+    try {
+      window.localStorage.setItem('lms_isAdmin', result.isAdmin ? '1' : '0');
+    } catch {
+      // ignore
+    }
+  }
   return result;
 }
 
@@ -64,6 +78,13 @@ export async function logout(): Promise<void> {
       credentials: 'include',
     });
   } finally {
+    if (typeof window !== 'undefined') {
+      try {
+        window.localStorage.removeItem('lms_isAdmin');
+      } catch {
+        // ignore
+      }
+    }
     authStore.getState().logout();
   }
 }

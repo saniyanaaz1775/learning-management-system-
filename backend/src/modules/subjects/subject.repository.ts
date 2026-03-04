@@ -55,4 +55,42 @@ export const subjectRepository = {
     });
     return subject;
   },
+
+  async createSubjectWithContent(params: {
+    title: string;
+    slug: string;
+    description: string | null;
+    sectionTitle: string;
+    videos: Array<{ title: string; youtubeVideoId: string; description: string | null; orderIndex: number }>;
+  }) {
+    return prisma.subject.create({
+      data: {
+        title: params.title,
+        slug: params.slug,
+        description: params.description,
+        isPublished: true,
+        sections: {
+          create: {
+            title: params.sectionTitle,
+            orderIndex: 0,
+            videos: {
+              create: params.videos.map((v) => ({
+                title: v.title,
+                youtubeVideoId: v.youtubeVideoId,
+                description: v.description,
+                orderIndex: v.orderIndex,
+              })),
+            },
+          },
+        },
+      },
+    });
+  },
+
+  async findExistingSlug(slug: string) {
+    return prisma.subject.findUnique({
+      where: { slug },
+      select: { id: true },
+    });
+  },
 };

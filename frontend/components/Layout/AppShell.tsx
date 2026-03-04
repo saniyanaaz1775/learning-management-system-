@@ -5,16 +5,41 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { authStore } from '@/store/authStore';
 import { logout as apiLogout } from '@/lib/auth';
+import { apiClient } from '@/lib/apiClient';
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const isAuthenticated = authStore((s) => s.isAuthenticated);
+  const isAdmin = authStore((s) => s.isAdmin);
+  const setAdmin = authStore((s) => s.setAdmin);
   const [profileOpen, setProfileOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   async function logout() {
     await apiLogout();
   }
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    const stored = typeof window !== 'undefined' ? window.localStorage.getItem('lms_isAdmin') : null;
+    if (stored === '1' || stored === '0') {
+      setAdmin(stored === '1');
+    }
+    apiClient
+      .get<{ isAdmin?: boolean }>('/api/auth/me')
+      .then((data) => {
+        const admin = !!data.isAdmin;
+        setAdmin(admin);
+        if (typeof window !== 'undefined') {
+          try {
+            window.localStorage.setItem('lms_isAdmin', admin ? '1' : '0');
+          } catch {
+            // ignore
+          }
+        }
+      })
+      .catch(() => setAdmin(false));
+  }, [isAuthenticated, setAdmin]);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -47,11 +72,25 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               >
                 Courses
               </Link>
+              {isAdmin && (
+                <Link
+                  href="/admin/add-course"
+                  className={pathname === '/admin/add-course' ? 'text-neutral-900 dark:text-white font-medium' : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'}
+                >
+                  Add Course
+                </Link>
+              )}
               <Link
                 href="/my-learning"
                 className={pathname === '/my-learning' ? 'text-neutral-900 dark:text-white font-medium' : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'}
               >
                 My Learning
+              </Link>
+              <Link
+                href="/compiler"
+                className={pathname === '/compiler' ? 'text-neutral-900 dark:text-white font-medium' : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'}
+              >
+                Compiler
               </Link>
               <div className="relative" ref={dropdownRef}>
                 <button
