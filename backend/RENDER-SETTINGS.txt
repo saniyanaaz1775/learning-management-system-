@@ -6,7 +6,7 @@ Build Command:
 npm install --include=dev && node scripts/with-normalized-env.js "npx prisma generate && npm run build"
 
 Start Command:
-node scripts/with-normalized-env.js "npx prisma migrate deploy && node dist/server.js"
+node scripts/start-with-migrate.js
 
 Environment (required):
 - NODE_ENV = production

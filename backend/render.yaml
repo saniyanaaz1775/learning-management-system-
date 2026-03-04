@@ -3,7 +3,7 @@ services:
     name: lms-api
     runtime: node
     buildCommand: npm install --include=dev && node scripts/with-normalized-env.js "npx prisma generate && npm run build"
-    startCommand: node scripts/with-normalized-env.js "npx prisma migrate deploy && node dist/server.js"
+    startCommand: node scripts/start-with-migrate.js
     healthCheckPath: /api/health
     envVars:
       - key: NODE_ENV
