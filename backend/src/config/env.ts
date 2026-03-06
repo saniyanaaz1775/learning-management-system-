@@ -1,8 +1,8 @@
 import dotenv from 'dotenv';
 import path from 'path';
 
-// Load .env from backend root so env vars are set regardless of process.cwd()
-dotenv.config({ path: path.resolve(__dirname, '../../.env') });
+// Load .env from backend root. override: false so production env (e.g. Render) is never overwritten.
+dotenv.config({ path: path.resolve(__dirname, '../../.env'), override: false });
 
 export const env = {
   NODE_ENV: process.env.NODE_ENV ?? 'development',

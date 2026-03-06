@@ -2,9 +2,14 @@ import { config } from './config';
 import { authStore } from '@/store/authStore';
 
 const BASE = config.API_BASE_URL;
-const NETWORK_MSG = `Cannot reach server at ${BASE}. Start the backend: cd backend && npm run dev`;
+const NETWORK_MSG_LOCAL = `Cannot reach server at ${BASE}. Start the backend: cd backend && npm run dev`;
+const NETWORK_MSG_PRODUCTION = `Cannot reach the backend at ${BASE}. If the backend was sleeping (Render free tier), wait ~1 minute and try again. Otherwise set CORS_ORIGIN on Render to your Vercel URL (e.g. https://learning-management-system-sigma-khaki.vercel.app).`;
 
 type RequestInitWithAuth = RequestInit & { skipAuth?: boolean };
+
+function getNetworkErrorMsg(): string {
+  return config.isProductionApi ? NETWORK_MSG_PRODUCTION : NETWORK_MSG_LOCAL;
+}
 
 async function doFetch(
   path: string,
@@ -27,7 +32,12 @@ async function doFetch(
       credentials: 'include',
     });
   } catch (e) {
-    const msg = e instanceof TypeError && e.message === 'Failed to fetch' ? NETWORK_MSG : (e instanceof Error ? e.message : 'Network error');
+    const isFailedFetch = e instanceof TypeError && e.message === 'Failed to fetch';
+    if (isFailedFetch && config.isProductionApi && !retrying) {
+      await new Promise((r) => setTimeout(r, 8000));
+      return doFetch(path, options, true);
+    }
+    const msg = isFailedFetch ? getNetworkErrorMsg() : (e instanceof Error ? e.message : 'Network error');
     throw new Error(msg);
   }
   if (res.status === 401 && !retrying && !skipAuth) {

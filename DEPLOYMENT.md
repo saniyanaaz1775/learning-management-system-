@@ -1,153 +1,196 @@
-# Deploy LMS to Render (Backend) and Vercel (Frontend)
+# SkillSphere LMS – Deployment Guide
 
-Deploy the **backend first** so you have the API URL for the frontend.
-
----
-
-## Part 1: Deploy backend on Render
-
-### 1. Create a Render account and connect GitHub
-
-1. Go to [render.com](https://render.com) and sign up (or log in).
-2. Click **Dashboard** → **New** → **Web Service**.
-3. Connect your GitHub account if needed, then select the repo: **learning-management-system-** (or your repo name).
-4. Choose the **main** branch.
-
-### 2. Configure the service
-
-1. **Name**: e.g. `lms-api` (or leave default).
-2. **Region**: Pick the one closest to your users.
-3. **Root Directory**: set to **`backend`** (so Render runs commands inside the backend folder).
-4. **Runtime**: **Node**.
-5. **Build Command** (must run from `backend`):
-   ```bash
-   npm install --include=dev && node scripts/with-normalized-env.js "npx prisma generate && npm run build"
-   ```
-   (The script normalizes `DATABASE_URL` so Prisma accepts it; avoids P1013 from quotes or `jdbc:` scheme.)
-6. **Start Command**:
-   ```bash
-   node scripts/start-with-migrate.js
-   ```
-   (Resolves any P3009 failed migration, runs migrations, then starts the server.)
-7. **Instance type**: Free (or paid if you prefer).
-
-### 3. Set environment variables
-
-In the same Web Service screen, open **Environment** and add:
-
-| Key | Value | Notes |
-|-----|--------|--------|
-| `NODE_ENV` | `production` | Often set by default. |
-| `DATABASE_URL` | Your MySQL URL | Format: `mysql://user:password@host:port/database` (optional `?ssl-mode=REQUIRED` etc.). **No quotes** in Render. Use `mysql://` not `jdbc:mysql://`. URL-encode special characters in the password. |
-| `JWT_ACCESS_SECRET` | Long random string | Generate a strong secret (e.g. 32+ chars). |
-| `JWT_REFRESH_SECRET` | Another long random string | Different from access secret. |
-| `CORS_ORIGIN` | *(leave empty for now)* | You’ll set this after deploying the frontend (Step 6). |
-| `COOKIE_DOMAIN` | *(leave empty)* | Optional; leave blank unless you use a custom domain. |
-| `ADMIN_EMAIL` | Your admin user email | e.g. `admin@example.com` — this user will see “Add Course”. |
-
-- For **JWT_ACCESS_SECRET** and **JWT_REFRESH_SECRET**, Render can generate values: use **Generate** next to the field if available, or create your own and paste.
-
-### 4. Deploy
-
-1. Click **Create Web Service**.
-2. Wait for the first deploy to finish (Build → Deploy).
-3. If the build fails, check the logs (often `DATABASE_URL` or Prisma). Fix and redeploy.
-4. When it’s live, copy your service URL, e.g. **`https://lms-api.onrender.com`**. You’ll use this as the API URL for Vercel.
-
-### 5. (Optional) Run migrations separately
-
-If you prefer not to run migrations in the start command:
-
-1. In Render, open your service → **Shell** tab (if available).
-2. Run: `npx prisma migrate deploy`.
-3. Then use **Start Command**: `node dist/server.js` only.
+Deploy **Frontend → Vercel**, **Backend → Render**, **Database → MySQL**.
 
 ---
 
-## Part 2: Deploy frontend on Vercel
+## 1. Project verification summary
 
-### 1. Create a Vercel account and import the repo
-
-1. Go to [vercel.com](https://vercel.com) and sign up (or log in) with GitHub.
-2. Click **Add New** → **Project**.
-3. Import your GitHub repo (**learning-management-system-** or your repo name).
-4. Leave branch as **main**.
-
-### 2. Configure the project
-
-1. **Root Directory**: Click **Edit** and set to **`frontend`** (so Vercel builds the Next.js app).
-2. **Framework Preset**: Vercel should detect **Next.js**.
-3. **Build Command**: leave default **`next build`** (or `npm run build`).
-4. **Output Directory**: leave default (no need to set for Next.js).
-5. **Install Command**: leave default **`npm install`**.
-
-### 3. Set environment variable
-
-Before deploying, add:
-
-| Key | Value |
-|-----|--------|
-| `NEXT_PUBLIC_API_BASE_URL` | Your Render backend URL, e.g. `https://lms-api.onrender.com` |
-
-- No trailing slash.
-- Must be the **HTTPS** URL of the backend you deployed in Part 1.
-
-### 4. Deploy
-
-1. Click **Deploy**.
-2. Wait for the build to finish.
-3. When it’s done, copy your frontend URL, e.g. **`https://learning-management-system-xxx.vercel.app`**.
+| Item | Status |
+|------|--------|
+| **frontend/** | ✅ Next.js 14, `package.json`, `npm run build` |
+| **backend/** | ✅ Express, `package.json`, `npm run build` (tsc), Prisma |
+| **Prisma** | ✅ `provider = "mysql"`, `url = env("DATABASE_URL")` |
+| **Env vars** | ✅ Backend: env.ts + .env.example; Frontend: `NEXT_PUBLIC_API_BASE_URL` |
+| **Health** | ✅ `GET /api/health` returns `{ status: 'ok' }` |
+| **CORS** | ✅ Uses `CORS_ORIGIN` (comma-separated); credentials: true |
 
 ---
 
-## Part 3: Connect backend and frontend
+## 2. Required environment variables
 
-### 6. Set CORS on Render
+### Backend (Render)
 
-1. In **Render** → your **lms-api** service → **Environment**.
-2. Set **CORS_ORIGIN** to your Vercel frontend URL, e.g.:
-   ```text
-   https://learning-management-system-xxx.vercel.app
-   ```
-3. If you have multiple frontend URLs (e.g. preview deployments), use a comma-separated list:
-   ```text
-   https://your-app.vercel.app,https://your-app-xxx.vercel.app
-   ```
-4. Save. Render will redeploy with the new env.
+Add these in **Render Dashboard → Your Web Service → Environment**.
 
-### 7. Test the live app
+| Variable | Required | Example / notes |
+|----------|----------|------------------|
+| `NODE_ENV` | Yes | `production` |
+| `PORT` | Auto on Render | Render sets this; optional locally (default 3001). |
+| `DATABASE_URL` | Yes | See MySQL format below. |
+| `JWT_ACCESS_SECRET` | Yes | Long random string (e.g. 32+ chars). |
+| `JWT_REFRESH_SECRET` | Yes | Long random string (e.g. 32+ chars). |
+| `CORS_ORIGIN` | Yes (after frontend deploy) | Your Vercel URL, e.g. `https://your-app.vercel.app` (no trailing slash). Multiple: comma-separated. |
+| `COOKIE_DOMAIN` | Optional | Leave empty for same-origin. |
+| `COOKIE_NAME` | Optional | Default `refreshToken`. |
+| `ADMIN_EMAIL` | Optional | Email that can access Admin → Add Course. |
 
-1. Open your **Vercel** frontend URL in the browser.
-2. **Register** or **Log in** — you should get a success toast and redirect.
-3. Open **Courses** — the list should load (with a short loading state).
-4. Log in with the email you set as **ADMIN_EMAIL** — you should see **Add Course** in the header. Create a test course with one lesson (YouTube URL) and confirm it appears on the Courses page.
-5. Enroll in a course, open a video, and complete it — you should see “Lesson completed” and progress should persist.
+### MySQL `DATABASE_URL` format
+
+- **Format:** `mysql://USER:PASSWORD@HOST:PORT/DATABASE?params`
+- **No quotes** when pasting in Render.
+- **Special characters in password** must be URL-encoded (e.g. `@` → `%40`, `#` → `%23`, `%` → `%25`).
+- **SSL** (required for most cloud MySQL, e.g. PlanetScale, Railway, Render MySQL):
+
+  ```
+  mysql://user:password@host:3306/dbname?ssl-mode=REQUIRED
+  ```
+
+  Or:
+
+  ```
+  mysql://user:password@host:3306/dbname?ssl-mode=REQUIRED&sslaccept=strict
+  ```
+
+### Frontend (Vercel)
+
+| Variable | Required | Example |
+|----------|----------|--------|
+| `NEXT_PUBLIC_API_BASE_URL` | Yes | `https://your-backend.onrender.com` (no trailing slash). |
 
 ---
 
-## Troubleshooting
+## 3. Database (MySQL)
 
-| Issue | What to check |
-|-------|----------------|
-| Frontend can’t reach API (CORS / network errors) | Backend **CORS_ORIGIN** must exactly match the frontend origin (Vercel URL). No trailing slash. |
-| API requests go to localhost | Frontend **NEXT_PUBLIC_API_BASE_URL** must be your Render URL. Redeploy frontend after changing env. |
-| 503 / “Admin not configured” | Set **ADMIN_EMAIL** in Render if you use the Add Course feature. |
-| Database errors on Render | Check **DATABASE_URL** (correct host, user, password, DB name, SSL params if required). Run `npx prisma migrate deploy` if needed. |
-| **P1013: database string invalid** | **DATABASE_URL** must be `mysql://user:password@host:port/db` with **no surrounding quotes** in Render. Use `mysql://` not `jdbc:mysql://`. Encode special characters in password (e.g. `@` → `%40`). The repo’s build/start use a normalizer script to strip quotes and fix `jdbc:` automatically. |
-| Build fails on Render | Check **Root Directory** is `backend`. Use the build command from this doc (includes `with-normalized-env.js`). |
-| Build fails on Vercel | Check **Root Directory** is `frontend`. Ensure **Build Command** is `next build` (or `npm run build`). |
+- Create a MySQL database (PlanetScale, Railway, Render MySQL, or any MySQL 8-compatible host).
+- Run migrations **from your machine** once (or from Render in Start Command):
+
+  ```bash
+  cd backend
+  export DATABASE_URL="mysql://USER:PASSWORD@HOST:3306/DATABASE?ssl-mode=REQUIRED"
+  npx prisma migrate deploy
+  ```
+
+- Optional: seed data (if you have a seed script):
+
+  ```bash
+  npm run db:seed
+  ```
 
 ---
 
-## Quick reference
+## 4. Backend deployment (Render)
 
-**Render (backend)**  
-- Root: `backend`  
-- Build: `npm install --include=dev && node scripts/with-normalized-env.js "npx prisma generate && npm run build"`  
-- Start: `node scripts/start-with-migrate.js`  
-- Env: `DATABASE_URL` (no quotes), `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`, `CORS_ORIGIN`, `ADMIN_EMAIL`
+### 4.1 Create Web Service
 
-**Vercel (frontend)**  
-- Root: `frontend`  
-- Build: `next build`  
-- Env: `NEXT_PUBLIC_API_BASE_URL` = your Render backend URL
+1. **Render** → **New** → **Web Service**.
+2. Connect your Git repo (e.g. GitHub).
+3. Configure:
+
+   | Setting | Value |
+   |--------|--------|
+   | **Name** | e.g. `skillsphere-api` |
+   | **Root Directory** | `backend` |
+   | **Runtime** | `Node` |
+   | **Build Command** | `npm install --include=dev && npx prisma generate && npm run build` |
+   | **Start Command** | `npx prisma migrate deploy && node dist/server.js` |
+
+### 4.2 Environment variables (Render)
+
+In the same service, **Environment** tab, add all backend variables from the table above (including `DATABASE_URL`, `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`, `NODE_ENV=production`). Leave `CORS_ORIGIN` for step 7.
+
+### 4.3 Deploy
+
+- **Deploy** the service. Wait until the build succeeds and the service is **Live**.
+- Copy the **backend URL** (e.g. `https://skillsphere-api.onrender.com`). No trailing slash.
+
+### 4.4 Verify backend
+
+- Open: `https://YOUR-BACKEND-URL.onrender.com/api/health`  
+- Expected: `{ "status": "ok" }`.
+
+---
+
+## 5. Frontend deployment (Vercel)
+
+### 5.1 Create project
+
+1. **Vercel** → **Add New** → **Project**.
+2. Import the same Git repo.
+3. Configure:
+
+   | Setting | Value |
+   |--------|--------|
+   | **Root Directory** | `frontend` (or set and override if needed). |
+   | **Framework Preset** | Next.js (auto-detected). |
+   | **Build Command** | `npm run build` (default). |
+   | **Output Directory** | leave default. |
+
+### 5.2 Environment variable (Vercel)
+
+- **Environment Variables** → add:
+  - **Name:** `NEXT_PUBLIC_API_BASE_URL`
+  - **Value:** `https://YOUR-BACKEND-URL.onrender.com` (the URL from step 4.3, no trailing slash).
+- Apply to **Production** (and Preview if you want).
+
+### 5.3 Deploy
+
+- **Deploy**. After build, note the **frontend URL** (e.g. `https://your-app.vercel.app`).
+
+### 5.4 No localhost in production
+
+- The app uses `NEXT_PUBLIC_API_BASE_URL` for all API calls. As long as this is set in Vercel to your Render backend URL, no localhost URLs are used in production.
+
+---
+
+## 6. CORS configuration
+
+- Backend reads **one or more** origins from `CORS_ORIGIN` (comma-separated).
+- After the frontend is deployed, set on **Render** (Environment):
+  - `CORS_ORIGIN` = `https://your-app.vercel.app`
+  - For multiple (e.g. preview + production): `https://your-app.vercel.app,https://preview.vercel.app`
+- **Redeploy** the backend on Render after changing `CORS_ORIGIN` so the new value is applied.
+
+---
+
+## 7. Deployment order (exact steps)
+
+1. **Step 1:** Deploy **backend** on Render (Root: `backend`, Build/Start commands as above). Set all env vars **except** `CORS_ORIGIN` (or set it to your Vercel URL if you already know it).
+2. **Step 2:** Get the **backend URL** (e.g. `https://skillsphere-api.onrender.com`). Verify `GET /api/health` returns `{ "status": "ok" }`.
+3. **Step 3:** In **Vercel**, add env: `NEXT_PUBLIC_API_BASE_URL` = backend URL (no trailing slash).
+4. **Step 4:** Deploy **frontend** on Vercel (Root: `frontend`, Build: `npm run build`).
+5. **Step 5:** In **Render**, set `CORS_ORIGIN` = your Vercel frontend URL (e.g. `https://your-app.vercel.app`). Redeploy backend if needed.
+
+---
+
+## 8. Final verification checklist
+
+After both deployments:
+
+- [ ] **Backend health:** `https://YOUR-BACKEND-URL/api/health` → `{ "status": "ok" }`.
+- [ ] **Frontend loads:** Open Vercel URL; page loads without errors.
+- [ ] **API calls work:** e.g. Courses or Dashboard load data.
+- [ ] **Login / Register:** Auth works; no CORS errors in browser DevTools → Network / Console.
+- [ ] **Courses load:** Enroll and view course content.
+- [ ] **No CORS errors:** Console and Network show no blocked requests; cookies/credentials work if you use cookie-based auth.
+
+---
+
+## 9. Quick reference
+
+### Render (backend)
+
+- **Root Directory:** `backend`
+- **Build Command:** `npm install --include=dev && npx prisma generate && npm run build`
+- **Start Command:** `npx prisma migrate deploy && node dist/server.js`
+
+### Vercel (frontend)
+
+- **Root Directory:** `frontend`
+- **Build Command:** `npm run build`
+- **Env:** `NEXT_PUBLIC_API_BASE_URL` = Render backend URL (no trailing slash)
+
+### MySQL URL
+
+- Valid format: `mysql://USER:PASSWORD@HOST:PORT/DATABASE?ssl-mode=REQUIRED`
+- Encode special characters in the password.
