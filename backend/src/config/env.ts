@@ -1,7 +1,7 @@
 import dotenv from 'dotenv';
 import path from 'path';
 
-// Load .env from backend root so OPENAI_API_KEY etc. are set regardless of process.cwd()
+// Load .env from backend root so env vars are set regardless of process.cwd()
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
 export const env = {

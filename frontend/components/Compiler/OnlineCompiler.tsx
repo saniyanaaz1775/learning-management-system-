@@ -5,7 +5,6 @@ import { apiClient } from '@/lib/apiClient';
 import { Button } from '@/lib/common/Button';
 import { Spinner } from '@/lib/common/Spinner';
 import { Alert } from '@/lib/common/Alert';
-import { CodeHelperBot } from './CodeHelperBot';
 
 const LANGUAGES = [
   { value: 'python', label: 'Python' },
@@ -188,18 +187,6 @@ export function OnlineCompiler() {
             </p>
           )}
         </div>
-      </div>
-
-      <div>
-        <CodeHelperBot
-          code={code}
-          language={language}
-          errorOutput={
-            output
-              ? [output.stdout, output.stderr, output.error].filter(Boolean).join('\n')
-              : runError ?? ''
-          }
-        />
       </div>
     </div>
   );
