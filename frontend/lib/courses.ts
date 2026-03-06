@@ -7,6 +7,15 @@ export interface CourseItem {
   description: string | null;
   is_published: boolean;
   created_at: string;
+  /** Video URL (e.g. YouTube). Thumbnail is derived from this for YouTube; otherwise use thumbnail. */
+  videoUrl?: string | null;
+  /** Manual thumbnail URL when video is not from YouTube. */
+  thumbnail?: string | null;
+}
+
+/** API may return snake_case video_url. */
+interface CourseItemFromApi extends CourseItem {
+  video_url?: string | null;
 }
 
 export interface SubjectProgress {
@@ -23,22 +32,32 @@ export function getAllCoursesFromResponse(data: unknown): CourseItem[] {
   const empty: CourseItem[] = [];
 
   if (Array.isArray(data)) {
-    return (data as { courses?: CourseItem[]; items?: CourseItem[] }[]).flatMap(
-      (category) => category.courses ?? category.items ?? empty
+    return (data as { courses?: CourseItemFromApi[]; items?: CourseItemFromApi[] }[]).flatMap(
+      (category) => (category.courses ?? category.items ?? empty).map(normalizeCourseItem)
     );
   }
 
   if (typeof data === 'object' && data !== null) {
     const d = data as Record<string, unknown>;
-    if (Array.isArray(d.items)) return d.items as CourseItem[];
+    if (Array.isArray(d.items)) {
+      return (d.items as CourseItemFromApi[]).map(normalizeCourseItem);
+    }
     if (Array.isArray(d.categories)) {
-      return (d.categories as { courses?: CourseItem[]; items?: CourseItem[] }[]).flatMap(
-        (category) => category.courses ?? category.items ?? empty
+      return (d.categories as { courses?: CourseItemFromApi[]; items?: CourseItemFromApi[] }[]).flatMap(
+        (category) => (category.courses ?? category.items ?? empty).map(normalizeCourseItem)
       );
     }
   }
 
   return [];
+}
+
+function normalizeCourseItem(item: CourseItemFromApi): CourseItem {
+  const { video_url, ...rest } = item;
+  return {
+    ...rest,
+    videoUrl: item.videoUrl ?? video_url ?? null,
+  };
 }
 
 /** Fetch all published courses from the API. */

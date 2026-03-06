@@ -130,4 +130,21 @@ export const authService = {
       isAdmin,
     };
   },
+
+  async updateMe(userId: number, body: { name?: string }) {
+    const name = body.name != null && typeof body.name === 'string' ? body.name.trim() : undefined;
+    if (name === undefined) return this.getMe(userId);
+    const user = await prisma.user.update({
+      where: { id: BigInt(userId) },
+      data: { name: name || undefined },
+      select: { id: true, email: true, name: true },
+    });
+    const isAdmin = !!env.ADMIN_EMAIL && user.email.toLowerCase() === env.ADMIN_EMAIL.toLowerCase();
+    return {
+      id: Number(user.id),
+      email: user.email,
+      name: user.name,
+      isAdmin,
+    };
+  },
 };

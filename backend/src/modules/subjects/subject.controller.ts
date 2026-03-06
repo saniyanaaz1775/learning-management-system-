@@ -10,14 +10,21 @@ export async function listSubjects(req: Request, res: Response): Promise<void> {
     const q = typeof req.query.q === 'string' ? req.query.q : undefined;
     const result = await subjectService.list({ page, pageSize, q });
     res.json({
-      items: result.items.map((s) => ({
-        id: s.id.toString(),
-        title: s.title,
-        slug: s.slug,
-        description: s.description,
-        is_published: s.isPublished,
-        created_at: s.createdAt,
-      })),
+      items: result.items.map((s) => {
+        const firstVideo = s.sections?.[0]?.videos?.[0];
+        const videoUrl = firstVideo?.youtubeVideoId
+          ? `https://www.youtube.com/watch?v=${firstVideo.youtubeVideoId}`
+          : null;
+        return {
+          id: s.id.toString(),
+          title: s.title,
+          slug: s.slug,
+          description: s.description,
+          is_published: s.isPublished,
+          created_at: s.createdAt,
+          video_url: videoUrl,
+        };
+      }),
       total: result.total,
       page: result.page,
       pageSize: result.pageSize,

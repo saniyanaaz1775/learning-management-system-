@@ -87,4 +87,16 @@ export const apiClient = {
     }
     return res.json();
   },
+  async patch<T = unknown>(path: string, body?: unknown, options?: RequestInitWithAuth): Promise<T> {
+    const res = await doFetch(path, {
+      ...options,
+      method: 'PATCH',
+      body: body != null ? JSON.stringify(body) : undefined,
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: res.statusText }));
+      throw new Error((err as { error?: string }).error ?? 'Request failed');
+    }
+    return res.json();
+  },
 };

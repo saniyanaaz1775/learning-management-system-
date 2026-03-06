@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "LMS REST API",
   "main": "dist/server.js",
+  "engines": { "node": ">=18" },
   "prisma": {
     "seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"
   },

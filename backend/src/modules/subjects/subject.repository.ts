@@ -29,6 +29,15 @@ export const subjectRepository = {
         skip,
         take: pageSize,
         orderBy: { createdAt: 'desc' },
+        include: {
+          sections: {
+            orderBy: { orderIndex: 'asc' },
+            take: 1,
+            include: {
+              videos: { orderBy: { orderIndex: 'asc' }, take: 1, select: { youtubeVideoId: true } },
+            },
+          },
+        },
       }),
       prisma.subject.count({ where }),
     ]);

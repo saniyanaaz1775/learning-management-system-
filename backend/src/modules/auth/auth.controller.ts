@@ -17,6 +17,20 @@ export async function me(req: Request, res: Response) {
   }
 }
 
+export async function updateMe(req: Request, res: Response) {
+  try {
+    const userId = req.user?.id;
+    if (userId == null) return res.status(401).json({ error: 'Not authenticated' });
+    const body = (req.body as Record<string, unknown> | undefined) ?? {};
+    const data = await authService.updateMe(userId, { name: body.name as string | undefined });
+    return res.json(data);
+  } catch (e: unknown) {
+    if (env.NODE_ENV !== 'production' && e) console.error('Update me error:', e);
+    const { statusCode, message } = toApiError(e);
+    return res.status(statusCode).json({ error: message });
+  }
+}
+
 const COOKIE_NAME = env.COOKIE_NAME;
 const isDev = env.NODE_ENV !== 'production';
 

@@ -124,8 +124,8 @@ export function DashboardOverview() {
 
   return (
     <div className="space-y-8">
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="flex h-full flex-col justify-between rounded-xl border border-neutral-200 bg-white p-5 shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
           <p className="text-sm font-medium text-neutral-500 dark:text-neutral-400">
             Enrolled courses
           </p>
@@ -135,7 +135,7 @@ export function DashboardOverview() {
         </div>
         {progressSummary != null && (
           <>
-            <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+            <div className="flex h-full flex-col justify-between rounded-xl border border-neutral-200 bg-white p-5 shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
               <p className="text-sm font-medium text-neutral-500 dark:text-neutral-400">
                 In progress
               </p>
@@ -143,7 +143,7 @@ export function DashboardOverview() {
                 {progressSummary.inProgress}
               </p>
             </div>
-            <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+            <div className="flex h-full flex-col justify-between rounded-xl border border-neutral-200 bg-white p-5 shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
               <p className="text-sm font-medium text-neutral-500 dark:text-neutral-400">
                 Average progress
               </p>
@@ -157,21 +157,21 @@ export function DashboardOverview() {
 
       {continueCourse && (
         <section>
-          <h2 className="mb-4 text-lg font-semibold text-neutral-900 dark:text-white">
+          <h2 className="mb-4 text-xl font-semibold text-neutral-900 dark:text-white">
             Continue learning
           </h2>
-          <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-md dark:border-neutral-800 dark:bg-neutral-900">
+          <div className="rounded-xl border border-neutral-200 bg-white p-5 shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div>
+              <div className="min-w-0 flex-1">
                 <h3 className="text-lg font-semibold text-neutral-900 dark:text-white">
                   {continueCourse.course.title}
                 </h3>
                 <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
                   {continueCourse.progress.percent_complete}% complete
                 </p>
-                <div className="mt-2 h-2 w-full max-w-xs overflow-hidden rounded-full bg-neutral-100 dark:bg-neutral-800">
+                <div className="mt-2 h-2 w-full max-w-full overflow-hidden rounded-full bg-neutral-100 dark:bg-neutral-800">
                   <div
-                    className="h-full rounded-full bg-emerald-500"
+                    className="h-full max-w-full rounded-full bg-emerald-500"
                     style={{ width: `${Math.min(100, continueCourse.progress.percent_complete)}%` }}
                   />
                 </div>
@@ -203,7 +203,7 @@ export function DashboardOverview() {
       )}
 
       {enrolledCount === 0 && (
-        <div className="rounded-2xl border border-neutral-200 bg-neutral-50/50 py-12 text-center dark:border-neutral-800 dark:bg-neutral-900/30">
+        <div className="rounded-xl border border-neutral-200 bg-neutral-50/50 p-6 text-center dark:border-neutral-700 dark:bg-neutral-900/30">
           <p className="text-neutral-500 dark:text-neutral-400">
             You haven&apos;t enrolled in any courses yet.
           </p>
@@ -214,12 +214,12 @@ export function DashboardOverview() {
       )}
 
       <section>
-        <h2 className="mb-4 text-lg font-semibold text-neutral-900 dark:text-white">
+        <h2 className="mb-4 text-xl font-semibold text-neutral-900 dark:text-white">
           Tools
         </h2>
         <Link
           href="/compiler"
-          className="flex items-center gap-4 rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md dark:border-neutral-800 dark:bg-neutral-900"
+          className="flex items-center gap-4 rounded-xl border border-neutral-200 bg-white p-5 shadow-sm transition-shadow hover:shadow-md dark:border-neutral-700 dark:bg-neutral-900"
         >
           <span
             className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-neutral-100 dark:bg-neutral-800"
@@ -239,7 +239,7 @@ export function DashboardOverview() {
               />
             </svg>
           </span>
-          <div>
+          <div className="min-w-0 flex-1">
             <h3 className="font-semibold text-neutral-900 dark:text-white">
               Online Code Compiler
             </h3>

@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { authMiddleware } from '../../middleware/authMiddleware';
-import { register, login, refresh, logout, me } from './auth.controller';
+import { register, login, refresh, logout, me, updateMe } from './auth.controller';
 import { validateRegister, validateLogin } from './auth.validator';
 
 export const authRoutes = Router();
@@ -9,3 +9,4 @@ authRoutes.post('/login', validateLogin, login);
 authRoutes.post('/refresh', refresh);
 authRoutes.post('/logout', logout);
 authRoutes.get('/me', authMiddleware, me);
+authRoutes.patch('/me', authMiddleware, updateMe);

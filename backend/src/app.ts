@@ -21,8 +21,7 @@ app.use(requestLogger);
 
 app.get('/', (_req, res) => {
   res.json({
-    message: 'LMS API',
-    docs: 'Use the frontend at http://localhost:3000',
+    message: 'SkillSphere API',
     health: '/api/health',
   });
 });

@@ -1,3 +1,4 @@
+import './normalize-database-url';
 import { env } from './config/env';
 import app from './app';
 

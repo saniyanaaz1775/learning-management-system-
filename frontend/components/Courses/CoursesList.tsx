@@ -61,7 +61,7 @@ export function CoursesList() {
   }
 
   return (
-    <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+    <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
       {courses.map((course) => (
         <CourseCard
           key={course.id}
@@ -71,6 +71,8 @@ export function CoursesList() {
           percentComplete={progressMap[course.id]?.percent_complete ?? 0}
           hasProgress={(progressMap[course.id]?.completed_videos ?? 0) > 0}
           isLoadingProgress={progressLoading}
+          thumbnail={course.thumbnail ?? null}
+          videoUrl={course.videoUrl ?? null}
         />
       ))}
     </div>

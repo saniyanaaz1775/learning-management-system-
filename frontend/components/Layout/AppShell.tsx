@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { authStore } from '@/store/authStore';
 import { logout as apiLogout } from '@/lib/auth';
 import { apiClient } from '@/lib/apiClient';
+import { ThemeToggle } from './ThemeToggle';
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -55,9 +56,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen flex flex-col">
       <header className="border-b border-neutral-200 dark:border-neutral-800 px-4 py-3 flex items-center justify-between">
         <Link href="/" className="font-semibold text-lg">
-          LMS
+          SkillSphere
         </Link>
-        <nav className="flex items-center gap-4">
+        <nav className="flex items-center gap-5 sm:gap-6">
+          <ThemeToggle />
           {isAuthenticated ? (
             <>
               <Link
@@ -136,6 +138,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </nav>
       </header>
       <main className="flex-1">{children}</main>
+      <footer className="border-t border-neutral-200 bg-white px-4 py-6 text-sm text-neutral-500 dark:border-neutral-800 dark:bg-neutral-950 dark:text-neutral-400">
+        <div className="mx-auto max-w-6xl">
+          © 2026 SkillSphere. All rights reserved.
+        </div>
+      </footer>
     </div>
   );
 }
