@@ -74,10 +74,12 @@ If Register or Login shows this, the backend cannot reach Aiven MySQL (often due
 
 ## Deployment
 
-- **Backend (Render):** Connect repo, set root to `backend`. Build: `npm install && npx prisma generate && npm run build`. Start: `node dist/server.js`. Health path: `/api/health`. Set env var `DATABASE_URL` to your Aiven MySQL URL with `?sslaccept=strict` (same format as local).
-- **Frontend (Vercel):** Connect repo, set root to `frontend`, set `NEXT_PUBLIC_API_BASE_URL` to your Render backend URL.
-- **CORS:** Set `CORS_ORIGIN` on the backend to your Vercel frontend URL (e.g. `https://your-app.vercel.app`).
-- **Cookies:** In production set `COOKIE_DOMAIN` if needed for cross-subdomain cookies.
+See **[DEPLOYMENT-CHECKLIST.md](./DEPLOYMENT-CHECKLIST.md)** for the full production checklist.
+
+- **Backend (Render):** Root `backend`. Build: `npm install --include=dev && npx prisma generate && npm run build`. Start: `npx prisma migrate deploy && node dist/server.js`. Health: `/api/health`. Set `DATABASE_URL`, `JWT_*`, `CORS_ORIGIN`, optional `HUGGINGFACE_API_KEY`.
+- **Frontend (Vercel):** Root `frontend`. Set `NEXT_PUBLIC_API_BASE_URL` to your Render backend URL (no trailing slash).
+- **CORS:** Set `CORS_ORIGIN` on Render to your Vercel URL (e.g. `https://learning-management-system-sigma-khaki.vercel.app`).
+- **Cookies:** Set `COOKIE_DOMAIN` only if using a shared subdomain.
 
 ## API
 

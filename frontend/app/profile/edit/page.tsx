@@ -99,17 +99,17 @@ export default function ProfileEditPage() {
                 Email cannot be changed here.
               </p>
             </div>
-            <div className="flex gap-3 pt-2">
+            <div className="flex flex-wrap items-center gap-3 pt-2">
               <button
                 type="submit"
                 disabled={loading}
-                className="inline-flex items-center justify-center rounded-lg bg-violet-600 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-violet-700 disabled:opacity-60"
+                className="inline-flex h-10 min-h-[40px] items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-offset-neutral-900"
               >
-                {loading ? <Spinner className="h-4 w-4" /> : 'Save changes'}
+                {loading ? <Spinner className="h-4 w-4 shrink-0" /> : 'Save changes'}
               </button>
               <Link
                 href="/profile"
-                className="inline-flex items-center justify-center rounded-lg border border-neutral-300 bg-neutral-100 px-5 py-2.5 text-sm font-medium text-neutral-800 transition-colors hover:bg-neutral-200 dark:border-neutral-600 dark:bg-neutral-800 dark:text-white dark:hover:bg-neutral-700"
+                className="inline-flex h-10 min-h-[40px] items-center justify-center rounded-lg bg-neutral-700 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-neutral-600 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2 dark:bg-neutral-600 dark:hover:bg-neutral-500 dark:focus:ring-offset-neutral-900"
               >
                 Cancel
               </Link>

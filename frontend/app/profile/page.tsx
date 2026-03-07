@@ -16,6 +16,7 @@ import {
   type SubjectProgress as ProgressType,
 } from '@/lib/courses';
 import { getCourseCardThumbnail } from '@/lib/thumbnail';
+import { CertificateCard } from '@/components/Certificates/CertificateCard';
 
 interface SubjectItem {
   id: string;
@@ -28,6 +29,7 @@ interface SubjectProgress {
   completed_videos: number;
   percent_complete: number;
   last_video_id: string | null;
+  completed_at?: string | null;
 }
 
 /** Mock weekly activity (12 weeks × 7 days). In production, derive from progress/activity API. */
@@ -58,13 +60,6 @@ function getBadges(subjectsProgress: SubjectProgress[]): { id: string; name: str
     { id: 'start', name: 'Learning Started', icon: '🌱', unlocked: hasAnyProgress },
   ];
 }
-
-const STAT_CARDS = [
-  { key: 'enrolled', label: 'Courses Enrolled', icon: '📚', color: 'from-violet-500/20 to-purple-600/20 border-violet-500/30' },
-  { key: 'completed', label: 'Courses Completed', icon: '✅', color: 'from-emerald-500/20 to-teal-600/20 border-emerald-500/30' },
-  { key: 'time', label: 'Total Learning Time', icon: '⏱️', color: 'from-amber-500/20 to-orange-600/20 border-amber-500/30' },
-  { key: 'streak', label: 'Learning Streak', icon: '🔥', color: 'from-rose-500/20 to-pink-600/20 border-rose-500/30' },
-] as const;
 
 export default function ProfilePage() {
   const [subjectsProgress, setSubjectsProgress] = useState<SubjectProgress[]>([]);
@@ -105,6 +100,7 @@ export default function ProfilePage() {
                 completed_videos: number;
                 percent_complete: number;
                 last_video_id: string | null;
+                completed_at?: string | null;
               }>(`/api/progress/subjects/${s.id}`);
               return { subject_id: s.id, title: s.title, ...p };
             } catch {
@@ -123,8 +119,6 @@ export default function ProfilePage() {
     return () => { cancelled = true; };
   }, []);
 
-  const coursesEnrolled = enrolledIds.length;
-  const coursesCompleted = subjectsProgress.filter((p) => p.percent_complete >= 100).length;
   const continueLearning = subjectsProgress
     .filter((p) => p.percent_complete > 0 && p.percent_complete < 100)
     .slice(0, 3);
@@ -132,12 +126,18 @@ export default function ProfilePage() {
   const badges = getBadges(subjectsProgress);
   const courseById = Object.fromEntries(courses.map((c) => [c.id, c]));
 
-  const stats = {
-    enrolled: coursesEnrolled,
-    completed: coursesCompleted,
-    time: '—', // Could be derived from video progress if backend tracks time
-    streak: 0, // Would come from activity API
-  };
+  const certificateItems = enrolledIds.map((id) => {
+    const p = subjectsProgress.find((s) => s.subject_id === id);
+    const course = courseById[id];
+    const title = course?.title ?? p?.title ?? 'Course';
+    const percent = p?.percent_complete ?? 0;
+    return {
+      courseId: id,
+      courseTitle: title,
+      completedAt: p?.completed_at ?? null,
+      isUnlocked: percent >= 100,
+    };
+  });
 
   if (loading) {
     return (
@@ -176,29 +176,10 @@ export default function ProfilePage() {
             </div>
             <Link
               href="/profile/edit"
-              className="inline-flex shrink-0 items-center justify-center rounded-lg border border-neutral-300 bg-neutral-100 px-5 py-2.5 text-sm font-medium text-neutral-800 transition-colors hover:bg-neutral-200 dark:border-neutral-600 dark:bg-neutral-800 dark:text-white dark:hover:bg-neutral-700"
+              className="inline-flex h-10 shrink-0 items-center justify-center rounded-lg bg-neutral-700 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-neutral-600 dark:bg-neutral-600 dark:hover:bg-neutral-500"
             >
               Edit Profile
             </Link>
-          </section>
-
-          {/* 2. Statistics */}
-          <section>
-            <h2 className="mb-4 text-lg font-semibold text-neutral-900 dark:text-white">Overview</h2>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              {STAT_CARDS.map(({ key, label, icon, color }) => (
-                <div
-                  key={key}
-                  className={`rounded-xl border bg-gradient-to-br p-5 shadow-md transition-all hover:shadow-lg ${color}`}
-                >
-                  <span className="text-2xl" aria-hidden>{icon}</span>
-                  <p className="mt-2 text-2xl font-bold text-neutral-900 dark:text-white">
-                    {key === 'time' ? stats.time : key === 'streak' ? `${stats.streak} days` : stats[key as keyof typeof stats]}
-                  </p>
-                  <p className="text-sm text-neutral-600 dark:text-neutral-400">{label}</p>
-                </div>
-              ))}
-            </div>
           </section>
 
           <div className="grid gap-10 lg:grid-cols-3">
@@ -321,28 +302,22 @@ export default function ProfilePage() {
           </section>
 
           {/* 7. Certificates */}
-          <section>
+          <section id="certificates">
             <h2 className="mb-4 text-lg font-semibold text-neutral-900 dark:text-white">Certificates</h2>
-            {completedForCerts.length === 0 ? (
+            {certificateItems.length === 0 ? (
               <div className="rounded-2xl border border-neutral-200 bg-white p-8 text-center dark:border-neutral-800 dark:bg-neutral-900/50">
-                <p className="text-neutral-500">Complete courses to earn certificates.</p>
+                <p className="text-neutral-500 dark:text-neutral-400">Enroll in courses to see certificates here.</p>
               </div>
             ) : (
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {completedForCerts.map((p) => (
-                  <div
-                    key={p.subject_id}
-                    className="flex flex-col rounded-xl border border-neutral-200 bg-white p-5 shadow-md transition-all hover:shadow-lg dark:border-neutral-800 dark:bg-neutral-900/50"
-                  >
-                    <p className="font-medium text-neutral-900 dark:text-white">{p.title}</p>
-                    <p className="mt-1 text-sm text-neutral-500">Completed</p>
-                    <Link
-                      href="#"
-                      className="mt-4 inline-flex w-full justify-center rounded-lg bg-purple-600 py-2 text-sm font-medium text-white transition-colors hover:bg-purple-500"
-                    >
-                      Download Certificate
-                    </Link>
-                  </div>
+                {certificateItems.map((item) => (
+                  <CertificateCard
+                    key={item.courseId}
+                    courseId={item.courseId}
+                    courseTitle={item.courseTitle}
+                    completedAt={item.completedAt}
+                    isUnlocked={item.isUnlocked}
+                  />
                 ))}
               </div>
             )}

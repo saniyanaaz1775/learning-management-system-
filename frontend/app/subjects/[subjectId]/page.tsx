@@ -8,6 +8,7 @@ import { Button } from '@/lib/common/Button';
 import { Spinner } from '@/lib/common/Spinner';
 import { sidebarStore } from '@/store/sidebarStore';
 import { toastStore } from '@/store/toastStore';
+import { aiHelperStore } from '@/store/aiHelperStore';
 
 export default function CourseOverviewPage() {
   const params = useParams();
@@ -26,6 +27,20 @@ export default function CourseOverviewPage() {
       .catch(() => {})
       .finally(() => setLoading(false));
   }, [subjectId]);
+
+  useEffect(() => {
+    const setCourse = aiHelperStore.getState().setCourse;
+    const setLesson = aiHelperStore.getState().setLesson;
+    const setCode = aiHelperStore.getState().setCode;
+    if (tree?.subject?.title) {
+      setCourse(tree.subject.title);
+    }
+    setLesson(null);
+    setCode(null);
+    return () => {
+      setCourse(null);
+    };
+  }, [tree?.subject?.title]);
 
   async function handleStart() {
     setStarting(true);

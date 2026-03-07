@@ -1,2 +1,2 @@
--- Make users.phone nullable so registration works without phone (LMS schema has no phone)
-ALTER TABLE `users` MODIFY COLUMN `phone` VARCHAR(191) NULL;
+-- No-op: users.phone was removed from schema; keep migration for history compatibility.
+SELECT 1;

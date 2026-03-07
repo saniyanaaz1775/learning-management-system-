@@ -45,14 +45,13 @@ export function ConfirmDialog({
         <p id="confirm-dialog-desc" className="mt-2 text-sm text-neutral-600 dark:text-neutral-400">
           {message}
         </p>
-        <div className="mt-6 flex justify-end gap-3">
+        <div className="mt-6 flex flex-wrap items-center justify-end gap-3">
           <Button type="button" variant="secondary" onClick={onCancel}>
             {cancelLabel}
           </Button>
           <Button
             type="button"
-            variant={variant === 'danger' ? 'primary' : 'primary'}
-            className={variant === 'danger' ? 'bg-red-600 hover:bg-red-700 focus:ring-red-500' : ''}
+            variant={variant === 'danger' ? 'danger' : 'primary'}
             onClick={() => {
               onConfirm();
               onCancel();

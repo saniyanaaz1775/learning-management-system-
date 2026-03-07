@@ -16,4 +16,5 @@ export const env = {
   COOKIE_DOMAIN: process.env.COOKIE_DOMAIN ?? undefined,
   COOKIE_NAME: process.env.COOKIE_NAME ?? 'refreshToken',
   ADMIN_EMAIL: process.env.ADMIN_EMAIL ?? undefined,
+  HUGGINGFACE_API_KEY: process.env.HUGGINGFACE_API_KEY ?? '',
 } as const;

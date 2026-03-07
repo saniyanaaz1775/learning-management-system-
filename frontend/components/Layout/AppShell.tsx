@@ -7,6 +7,7 @@ import { authStore } from '@/store/authStore';
 import { logout as apiLogout } from '@/lib/auth';
 import { apiClient } from '@/lib/apiClient';
 import { ThemeToggle } from './ThemeToggle';
+import { AIHelperBot } from '@/components/AIHelperBot';
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -138,6 +139,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </nav>
       </header>
       <main className="flex-1">{children}</main>
+      {isAuthenticated && <AIHelperBot />}
       <footer className="border-t border-neutral-200 bg-white px-4 py-6 text-sm text-neutral-500 dark:border-neutral-800 dark:bg-neutral-950 dark:text-neutral-400">
         <div className="mx-auto max-w-6xl">
           © 2026 SkillSphere. All rights reserved.

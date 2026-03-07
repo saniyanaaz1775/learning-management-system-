@@ -11,6 +11,8 @@ import { videoRoutes } from './modules/videos/video.routes';
 import { progressRoutes } from './modules/progress/progress.routes';
 import { executeRoutes } from './modules/execute/execute.routes';
 import { healthRoutes } from './modules/health/health.routes';
+import { aiRoutes } from './modules/ai/ai.routes';
+import { certificateRoutes } from './modules/certificates/certificate.routes';
 
 const app = express();
 
@@ -33,6 +35,8 @@ app.use('/api/videos', videoRoutes);
 app.use('/api/progress', progressRoutes);
 app.use('/api/execute', executeRoutes);
 app.use('/api/health', healthRoutes);
+app.use('/api/ai', aiRoutes);
+app.use('/api/certificates', certificateRoutes);
 
 app.use('/api/*', (_, res) => res.status(404).json({ error: 'Not found' }));
 app.use(errorHandler);

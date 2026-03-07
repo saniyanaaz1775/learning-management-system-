@@ -1,9 +1,20 @@
 'use client';
 
+import { useEffect } from 'react';
 import { AuthGuard } from '@/components/Auth/AuthGuard';
 import { OnlineCompiler } from '@/components/Compiler/OnlineCompiler';
+import { aiHelperStore } from '@/store/aiHelperStore';
 
 export default function CompilerPage() {
+  useEffect(() => {
+    aiHelperStore.getState().setCourse(null);
+    aiHelperStore.getState().setLesson(null);
+    aiHelperStore.getState().setCode(null);
+    return () => {
+      aiHelperStore.getState().setCode(null);
+    };
+  }, []);
+
   return (
     <AuthGuard>
       <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6 lg:px-8">
@@ -16,7 +27,9 @@ export default function CompilerPage() {
           </p>
         </header>
         <section className="min-w-0">
-          <OnlineCompiler />
+          <OnlineCompiler
+            onCodeChangeForAssistant={(code) => aiHelperStore.getState().setCode(code)}
+          />
         </section>
       </div>
     </AuthGuard>

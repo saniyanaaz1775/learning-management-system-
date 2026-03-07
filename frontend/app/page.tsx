@@ -14,16 +14,16 @@ export default function HomePage() {
           <p className="mt-4 max-w-2xl text-base leading-relaxed text-white/90">
             A modern learning platform where students can watch courses, practice coding, track progress, and improve their skills.
           </p>
-          <div className="mt-6 flex flex-wrap gap-4">
+          <div className="mt-6 flex flex-wrap items-center gap-3">
             <Link
               href="/courses"
-              className="inline-flex items-center justify-center rounded-lg bg-white px-5 py-2.5 font-medium text-indigo-700 shadow transition-colors hover:bg-white/95"
+              className="inline-flex h-10 min-h-[40px] items-center justify-center rounded-lg bg-white px-4 py-2 text-sm font-medium text-indigo-700 shadow transition-colors hover:bg-white/95"
             >
               Start Learning
             </Link>
             <Link
               href="/courses#courses-grid"
-              className="inline-flex items-center justify-center rounded-lg border-2 border-white/80 bg-transparent px-5 py-2.5 font-medium text-white transition-colors hover:bg-white/10"
+              className="inline-flex h-10 min-h-[40px] items-center justify-center rounded-lg border-2 border-white/80 bg-transparent px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-white/10"
             >
               Explore Courses
             </Link>

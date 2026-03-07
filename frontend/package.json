@@ -10,13 +10,16 @@
   },
   "dependencies": {
     "next": "14.0.4",
+    "prismjs": "^1.30.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "zustand": "^4.4.7",
-    "react-youtube": "^10.1.0"
+    "react-simple-code-editor": "^0.14.1",
+    "react-youtube": "^10.1.0",
+    "zustand": "^4.4.7"
   },
   "devDependencies": {
     "@types/node": "^20.10.4",
+    "@types/prismjs": "^1.26.6",
     "@types/react": "^18.2.45",
     "@types/react-dom": "^18.2.18",
     "autoprefixer": "^10.4.16",

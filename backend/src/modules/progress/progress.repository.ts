@@ -28,12 +28,23 @@ export const progressRepository = {
       orderBy: { updatedAt: 'desc' },
       include: { video: true },
     });
+    const percentComplete = totalVideos > 0 ? Math.round((completed / totalVideos) * 100) : 0;
+    let completed_at: string | null = null;
+    if (percentComplete >= 100 && videoIds.length > 0) {
+      const lastCompleted = await prisma.videoProgress.findFirst({
+        where: { userId, videoId: { in: videoIds }, isCompleted: true },
+        orderBy: { completedAt: 'desc' },
+        select: { completedAt: true },
+      });
+      completed_at = lastCompleted?.completedAt?.toISOString() ?? null;
+    }
     return {
       total_videos: totalVideos,
       completed_videos: completed,
-      percent_complete: Math.round((completed / totalVideos) * 100),
+      percent_complete: percentComplete,
       last_video_id: lastWatched?.videoId.toString() ?? null,
       last_position_seconds: lastWatched?.lastPositionSeconds ?? null,
+      completed_at,
     };
   },
 

@@ -131,7 +131,7 @@ export function CourseCard({
             <button
               type="button"
               disabled
-              className="mt-2 w-full rounded-lg border border-neutral-300 bg-neutral-100 py-1.5 text-xs font-medium text-neutral-500 dark:border-neutral-600 dark:bg-neutral-800 dark:text-neutral-400"
+              className="mt-2 flex h-10 w-full items-center justify-center rounded-lg bg-neutral-700 text-sm font-medium text-white opacity-60 dark:bg-neutral-600"
               title={actionTooltips.completed}
             >
               {actionLabels.completed}
@@ -139,7 +139,7 @@ export function CourseCard({
           ) : (
             <Link
               href={`/subjects/${id}`}
-              className="mt-2 block w-full rounded-lg bg-neutral-900 py-1.5 text-center text-xs font-medium text-white transition-colors hover:bg-neutral-800 dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-200"
+              className="mt-2 flex h-10 w-full items-center justify-center rounded-lg bg-blue-600 text-center text-sm font-medium text-white transition-colors hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700"
               title={actionTooltips[action]}
             >
               {actionLabels[action]}

@@ -1,2 +1,2 @@
--- Add updated_at to users (for DBs created without this column)
-ALTER TABLE `users` ADD COLUMN `updated_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3);
+-- No-op: init migration already has users.updated_at; keep for history compatibility.
+SELECT 1;

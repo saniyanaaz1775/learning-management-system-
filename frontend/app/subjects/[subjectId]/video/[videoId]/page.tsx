@@ -8,6 +8,7 @@ import { VideoPlayer } from '@/components/Video/VideoPlayer';
 import { sendProgress, flushProgress } from '@/lib/progress';
 import { sidebarStore } from '@/store/sidebarStore';
 import { toastStore } from '@/store/toastStore';
+import { aiHelperStore } from '@/store/aiHelperStore';
 import { Spinner } from '@/lib/common/Spinner';
 import { Alert } from '@/lib/common/Alert';
 
@@ -63,6 +64,19 @@ export default function VideoPage() {
       })
       .finally(() => setLoading(false));
   }, [videoId]);
+
+  useEffect(() => {
+    const tree = sidebarStore.getState().tree;
+    const courseTitle = tree?.subject?.title ?? null;
+    aiHelperStore.getState().setCourse(courseTitle);
+    aiHelperStore.getState().setCode(null);
+  }, [subjectId]);
+
+  useEffect(() => {
+    if (!meta) return;
+    aiHelperStore.getState().setLesson(meta.video.title);
+    return () => aiHelperStore.getState().setLesson(null);
+  }, [meta?.video.title]);
 
   function handleProgress(currentTime: number) {
     if (meta && !meta.locked) {
@@ -157,13 +171,13 @@ export default function VideoPage() {
           {v.description}
         </p>
       ) : null}
-      <div className="mt-6 flex gap-4">
+      <div className="mt-6 flex flex-wrap items-center gap-3">
         {meta.previous_video_id ? (
           <button
             type="button"
             disabled={completing}
             onClick={() => router.push(`/subjects/${subjectId}/video/${meta.previous_video_id}`)}
-            className="rounded-lg border border-neutral-200 px-4 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50 disabled:opacity-50 disabled:pointer-events-none dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-800"
+            className="h-10 min-h-[40px] rounded-lg bg-neutral-700 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-neutral-600 disabled:opacity-50 disabled:pointer-events-none focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2 dark:bg-neutral-600 dark:hover:bg-neutral-500 dark:focus:ring-offset-neutral-900"
           >
             Previous lesson
           </button>
@@ -173,7 +187,7 @@ export default function VideoPage() {
             type="button"
             disabled={completing}
             onClick={() => router.push(`/subjects/${subjectId}/video/${meta.next_video_id}`)}
-            className="rounded-lg bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800 disabled:opacity-50 disabled:pointer-events-none dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-200"
+            className="h-10 min-h-[40px] rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:opacity-50 disabled:pointer-events-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-offset-neutral-900"
           >
             Next lesson
           </button>

@@ -54,16 +54,16 @@ export default function CoursesPage() {
             <p className="mt-3 max-w-md text-lg text-white/90">
               Learn programming and technology with curated courses.
             </p>
-            <div className="mt-6 flex flex-wrap gap-3">
+            <div className="mt-6 flex flex-wrap items-center gap-3">
               <Link
                 href="#courses-grid"
-                className="inline-flex items-center justify-center rounded-lg bg-white px-5 py-2.5 font-medium text-purple-700 shadow transition-colors hover:bg-white/95"
+                className="inline-flex h-10 min-h-[40px] items-center justify-center rounded-lg bg-white px-4 py-2 text-sm font-medium text-purple-700 shadow transition-colors hover:bg-white/95"
               >
                 Start Learning
               </Link>
               <Link
                 href="#courses-grid"
-                className="inline-flex items-center justify-center rounded-lg border-2 border-white/80 bg-transparent px-5 py-2.5 font-medium text-white transition-colors hover:bg-white/10"
+                className="inline-flex h-10 min-h-[40px] items-center justify-center rounded-lg border-2 border-white/80 bg-transparent px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-white/10"
               >
                 Explore Courses
               </Link>

@@ -290,7 +290,7 @@ export default function AddCoursePage() {
             ))}
           </section>
 
-          <div className="flex gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <Button type="submit" disabled={saving} loading={saving} loadingLabel="Saving…">
               Save course
             </Button>

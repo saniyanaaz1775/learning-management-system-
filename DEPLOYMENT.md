@@ -34,6 +34,7 @@ Add these in **Render Dashboard → Your Web Service → Environment**.
 | `COOKIE_DOMAIN` | Optional | Leave empty for same-origin. |
 | `COOKIE_NAME` | Optional | Default `refreshToken`. |
 | `ADMIN_EMAIL` | Optional | Email that can access Admin → Add Course. |
+| `HUGGINGFACE_API_KEY` | Optional | Hugging Face Inference API token for AI learning assistant. Get at [huggingface.co/settings/tokens](https://huggingface.co/settings/tokens) (use “Make calls to Inference Providers”). |
 
 ### MySQL `DATABASE_URL` format
 
